@@ -14,7 +14,7 @@ const VerifyAccountScreen = () => {
     setLoading(true);
     try {
       await verifyAccount(code);
-      navigation.navigate('MainTabs');
+      // Navigation will be handled automatically by AppNavigator when isAuthenticated becomes true
     } catch (error) {
       console.error(error);
     } finally {
