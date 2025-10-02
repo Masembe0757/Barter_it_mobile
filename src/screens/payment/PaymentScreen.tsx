@@ -6,7 +6,6 @@ import {
   ScrollView,
   Alert,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import {
   Button,
@@ -16,6 +15,7 @@ import {
   Snackbar,
   ActivityIndicator,
 } from 'react-native-paper';
+
 import {
   StripeProvider,
   useStripe,
@@ -213,10 +213,10 @@ const PaymentScreen = () => {
                       ]}
                       onPress={() => setMobileProvider('mtn')}>
                       <RadioButton value="mtn" color="#FFD700" />
-                      <Image
-                        source={require('../../assets/mtn-logo.png')}
+                      {/* <Image
+                        source={MtnLogo}
                         style={styles.providerLogo}
-                      />
+                      /> */}
                       <Text style={styles.providerText}>MTN Money</Text>
                     </TouchableOpacity>
 
@@ -227,10 +227,10 @@ const PaymentScreen = () => {
                       ]}
                       onPress={() => setMobileProvider('airtel')}>
                       <RadioButton value="airtel" color="#FF0000" />
-                      <Image
-                        source={require('../../assets/airtel-logo.png')}
+                      {/* <Image
+                        source={AirtelLogo}
                         style={styles.providerLogo}
-                      />
+                      /> */}
                       <Text style={styles.providerText}>Airtel Money</Text>
                     </TouchableOpacity>
                   </View>
