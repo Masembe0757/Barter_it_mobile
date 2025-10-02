@@ -54,9 +54,9 @@ const DUMMY_ASSET = {
   currency: 'UGX',
   location: 'Kampala, Uganda',
   images: [
-    'https://picsum.photos/400/400?random=1',
-    'https://picsum.photos/400/400?random=2',
-    'https://picsum.photos/400/400?random=3',
+    'https://images.unsplash.com/photo-1632661674596-df8be070a5c1?w=400&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?w=400&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=400&h=400&fit=crop',
   ],
   condition: 'Excellent',
   created_at: '2024-01-15T10:00:00Z',
