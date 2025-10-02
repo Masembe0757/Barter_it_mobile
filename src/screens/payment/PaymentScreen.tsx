@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import {
   Button,
@@ -15,117 +16,118 @@ import {
   Snackbar,
   ActivityIndicator,
 } from 'react-native-paper';
-
-import {
-  StripeProvider,
-  useStripe,
-  CardField,
-  useConfirmPayment,
-} from '@stripe/stripe-react-native';
+import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {paymentService} from '../../services/paymentService';
-import {STRIPE_PUBLISHABLE_KEY, PAYMENT_CONFIG, CURRENCIES} from '../../constants/config';
+import {CURRENCIES} from '../../constants/config';
 
 const PaymentScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const {confirmPayment} = useConfirmPayment();
 
-  const {assetId, assetName, ownerName, amount = PAYMENT_CONFIG.unlockFee} = route.params || {};
+  const {assetId, assetName, ownerName, amount = 5000} = route.params || {};
 
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [cardDetails, setCardDetails] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState('mobile_money');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [mobileProvider, setMobileProvider] = useState('mtn');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
 
-  useEffect(() => {
-    if (paymentMethod === 'card') {
-      createPaymentIntent();
-    }
-  }, [paymentMethod]);
+  // Simulate payment processing with different outcomes
+  const simulatePaymentProcess = async (method: string, provider?: string) => {
+    setLoading(true);
 
-  const createPaymentIntent = async () => {
-    try {
-      const intent = await paymentService.createPaymentIntent(amount);
-      setClientSecret(intent.clientSecret);
-    } catch (err: any) {
-      setError(err.message || 'Failed to initialize payment');
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
+
+    // Simulate different outcomes
+    const success = Math.random() > 0.2; // 80% success rate
+
+    if (success) {
+      Alert.alert(
+        'Payment Successful! 🎉',
+        `Your payment of UGX ${amount.toLocaleString()} has been processed successfully. You can now contact ${ownerName} about "${assetName}".`,
+        [
+          {
+            text: 'Start Chat',
+            onPress: () => {
+              navigation.navigate('Chat', {
+                userId: 'seller-' + assetId,
+                userName: ownerName,
+                assetId: assetId,
+                assetTitle: assetName,
+                assetImage: 'https://picsum.photos/400/400?random=1',
+              });
+            },
+          },
+          {
+            text: 'Go Back',
+            onPress: () => navigation.goBack(),
+            style: 'cancel',
+          },
+        ]
+      );
+    } else {
+      const errors = [
+        'Insufficient funds. Please check your balance and try again.',
+        'Transaction timeout. Please try again.',
+        'Invalid PIN/password. Please check and try again.',
+        'Network error. Please check your connection and retry.',
+      ];
+      setError(errors[Math.floor(Math.random() * errors.length)]);
     }
+
+    setLoading(false);
   };
 
   const handleCardPayment = async () => {
-    if (!cardDetails?.complete) {
-      setError('Please complete card details');
+    if (!cardNumber || !expiryDate || !cvv) {
+      setError('Please complete all card details');
       return;
     }
 
-    setLoading(true);
-    try {
-      const {error: confirmError, paymentIntent} = await confirmPayment(clientSecret, {
-        paymentMethodType: 'Card',
-      });
-
-      if (confirmError) {
-        setError(confirmError.message);
-        return;
-      }
-
-      if (paymentIntent?.status === 'Succeeded') {
-        // Unlock contact details after successful payment
-        const contactDetails = await paymentService.unlockContactDetails(assetId);
-
-        Alert.alert(
-          'Payment Successful!',
-          'Contact details have been unlocked. You can now connect with the asset owner.',
-          [
-            {
-              text: 'View Contact',
-              onPress: () => navigation.navigate('ContactDetails', {
-                assetId,
-                contactDetails,
-              }),
-            },
-          ],
-        );
-      }
-    } catch (err: any) {
-      setError(err.message || 'Payment failed');
-    } finally {
-      setLoading(false);
+    if (cardNumber.length < 16) {
+      setError('Please enter a valid card number');
+      return;
     }
+
+    await simulatePaymentProcess('card');
   };
 
   const handleMobileMoneyPayment = async () => {
     if (!phoneNumber) {
-      setError('Please enter phone number');
+      setError('Please enter your phone number');
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await paymentService.processMobileMoneyPayment(
-        phoneNumber,
-        amount,
-        mobileProvider as 'mtn' | 'airtel',
-      );
-
-      // Navigate to OTP verification screen
-      navigation.navigate('VerifyPayment', {
-        transactionId: response.transactionId,
-        assetId,
-      });
-    } catch (err: any) {
-      setError(err.message || 'Mobile money payment failed');
-    } finally {
-      setLoading(false);
+    if (phoneNumber.length < 10) {
+      setError('Please enter a valid phone number');
+      return;
     }
+
+    // Show provider-specific confirmation
+    const providerName = mobileProvider === 'mtn' ? 'MTN Mobile Money' : 'Airtel Money';
+
+    Alert.alert(
+      `${providerName} Payment`,
+      `You will receive a prompt on ${phoneNumber} to authorize payment of UGX ${amount.toLocaleString()}. Please enter your PIN when prompted.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Continue',
+          onPress: () => simulatePaymentProcess('mobile_money', mobileProvider),
+        },
+      ]
+    );
   };
 
   const handlePayment = () => {
+    setError(''); // Clear any previous errors
     if (paymentMethod === 'card') {
       handleCardPayment();
     } else {
@@ -134,157 +136,191 @@ const PaymentScreen = () => {
   };
 
   return (
-    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-      <ScrollView style={styles.container}>
-        <Card style={styles.summaryCard}>
-          <Card.Content>
-            <Text style={styles.sectionTitle}>Payment Summary</Text>
-            <View style={styles.summaryRow}>
-              <Text style={styles.label}>Asset:</Text>
-              <Text style={styles.value}>{assetName}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.label}>Owner:</Text>
-              <Text style={styles.value}>{ownerName}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.label}>Unlock Fee:</Text>
-              <Text style={styles.amount}>${amount}</Text>
-            </View>
-            <Text style={styles.description}>
-              Pay to unlock full contact details and connect with the asset owner
-            </Text>
-          </Card.Content>
-        </Card>
+    <ScrollView style={styles.container}>
+      <Card style={styles.summaryCard}>
+        <Card.Content>
+          <Text style={styles.sectionTitle}>Payment Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.label}>Asset:</Text>
+            <Text style={styles.value}>{assetName}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.label}>Owner:</Text>
+            <Text style={styles.value}>{ownerName}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.label}>Contact Fee:</Text>
+            <Text style={styles.amount}>UGX {amount.toLocaleString()}</Text>
+          </View>
+          <Text style={styles.description}>
+            Pay to unlock seller contact details and start negotiations
+          </Text>
+        </Card.Content>
+      </Card>
 
-        <Card style={styles.methodCard}>
-          <Card.Content>
-            <Text style={styles.sectionTitle}>Payment Method</Text>
+      <Card style={styles.methodCard}>
+        <Card.Content>
+          <Text style={styles.sectionTitle}>Choose Payment Method</Text>
 
-            <RadioButton.Group
-              onValueChange={setPaymentMethod}
-              value={paymentMethod}>
+          <RadioButton.Group
+            onValueChange={setPaymentMethod}
+            value={paymentMethod}>
 
-              <TouchableOpacity
-                style={styles.radioOption}
-                onPress={() => setPaymentMethod('card')}>
-                <RadioButton value="card" color="#FF6B35" />
-                <Icon name="credit-card" size={24} color="#333" />
-                <Text style={styles.radioLabel}>Credit/Debit Card</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.radioOption}
+              onPress={() => setPaymentMethod('mobile_money')}>
+              <RadioButton value="mobile_money" color="#FF6B35" />
+              <Icon name="cellphone" size={24} color="#333" />
+              <Text style={styles.radioLabel}>Mobile Money (Recommended)</Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.radioOption}
-                onPress={() => setPaymentMethod('mobile_money')}>
-                <RadioButton value="mobile_money" color="#FF6B35" />
-                <Icon name="cellphone" size={24} color="#333" />
-                <Text style={styles.radioLabel}>Mobile Money</Text>
-              </TouchableOpacity>
-            </RadioButton.Group>
+            <TouchableOpacity
+              style={styles.radioOption}
+              onPress={() => setPaymentMethod('card')}>
+              <RadioButton value="card" color="#FF6B35" />
+              <Icon name="credit-card" size={24} color="#333" />
+              <Text style={styles.radioLabel}>Credit/Debit Card</Text>
+            </TouchableOpacity>
+          </RadioButton.Group>
 
-            {paymentMethod === 'card' && (
-              <View style={styles.paymentDetails}>
-                <CardField
-                  postalCodeEnabled={false}
-                  placeholders={{
-                    number: '4242 4242 4242 4242',
-                  }}
-                  cardStyle={styles.cardField}
-                  style={styles.cardFieldContainer}
-                  onCardChange={setCardDetails}
-                />
-                <Text style={styles.secureText}>
-                  <Icon name="lock" size={12} /> Secure payment powered by Stripe
-                </Text>
-              </View>
-            )}
+          {paymentMethod === 'card' && (
+            <View style={styles.paymentDetails}>
+              <TextInput
+                label="Card Number"
+                value={cardNumber}
+                onChangeText={setCardNumber}
+                mode="outlined"
+                keyboardType="numeric"
+                style={styles.input}
+                outlineColor="#ddd"
+                activeOutlineColor="#FF6B35"
+                placeholder="1234 5678 9012 3456"
+                left={<TextInput.Icon icon="credit-card" />}
+                maxLength={19}
+              />
 
-            {paymentMethod === 'mobile_money' && (
-              <View style={styles.paymentDetails}>
-                <Text style={styles.subLabel}>Select Provider</Text>
-                <RadioButton.Group
-                  onValueChange={setMobileProvider}
-                  value={mobileProvider}>
-                  <View style={styles.providerRow}>
-                    <TouchableOpacity
-                      style={[
-                        styles.providerOption,
-                        mobileProvider === 'mtn' && styles.selectedProvider,
-                      ]}
-                      onPress={() => setMobileProvider('mtn')}>
-                      <RadioButton value="mtn" color="#FFD700" />
-                      {/* <Image
-                        source={MtnLogo}
-                        style={styles.providerLogo}
-                      /> */}
-                      <Text style={styles.providerText}>MTN Money</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.providerOption,
-                        mobileProvider === 'airtel' && styles.selectedProvider,
-                      ]}
-                      onPress={() => setMobileProvider('airtel')}>
-                      <RadioButton value="airtel" color="#FF0000" />
-                      {/* <Image
-                        source={AirtelLogo}
-                        style={styles.providerLogo}
-                      /> */}
-                      <Text style={styles.providerText}>Airtel Money</Text>
-                    </TouchableOpacity>
-                  </View>
-                </RadioButton.Group>
-
+              <View style={styles.cardRow}>
                 <TextInput
-                  label="Phone Number"
-                  value={phoneNumber}
-                  onChangeText={setPhoneNumber}
+                  label="MM/YY"
+                  value={expiryDate}
+                  onChangeText={setExpiryDate}
                   mode="outlined"
-                  keyboardType="phone-pad"
-                  style={styles.input}
+                  keyboardType="numeric"
+                  style={[styles.input, styles.halfInput]}
                   outlineColor="#ddd"
                   activeOutlineColor="#FF6B35"
-                  placeholder="+254 700 000000"
-                  left={<TextInput.Icon icon="phone" />}
+                  placeholder="12/25"
+                  maxLength={5}
+                />
+                <TextInput
+                  label="CVV"
+                  value={cvv}
+                  onChangeText={setCvv}
+                  mode="outlined"
+                  keyboardType="numeric"
+                  style={[styles.input, styles.halfInput]}
+                  outlineColor="#ddd"
+                  activeOutlineColor="#FF6B35"
+                  placeholder="123"
+                  maxLength={4}
+                  secureTextEntry
                 />
               </View>
-            )}
-          </Card.Content>
-        </Card>
 
-        <View style={styles.footer}>
-          <Button
-            mode="contained"
-            onPress={handlePayment}
-            loading={loading}
-            disabled={loading}
-            style={styles.payButton}
-            contentStyle={styles.payButtonContent}
-            buttonColor="#FF6B35">
-            {loading ? 'Processing...' : `Pay $${amount}`}
-          </Button>
+              <Text style={styles.secureText}>
+                <Icon name="lock" size={12} /> Your card details are secure
+              </Text>
+            </View>
+          )}
 
-          <View style={styles.security}>
-            <Icon name="shield-check" size={16} color="#666" />
-            <Text style={styles.securityText}>
-              Your payment information is secure and encrypted
-            </Text>
-          </View>
+          {paymentMethod === 'mobile_money' && (
+            <View style={styles.paymentDetails}>
+              <Text style={styles.subLabel}>Select Your Provider</Text>
+              <View style={styles.providerRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.providerOption,
+                    mobileProvider === 'mtn' && styles.selectedProvider,
+                  ]}
+                  onPress={() => setMobileProvider('mtn')}>
+                  <RadioButton value="mtn" color="#FFD700" />
+                  <Image
+                    source={require('../../../assets/mtn-logo.png')}
+                    style={styles.providerLogo}
+                  />
+                  <Text style={styles.providerText}>MTN Money</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.providerOption,
+                    mobileProvider === 'airtel' && styles.selectedProvider,
+                  ]}
+                  onPress={() => setMobileProvider('airtel')}>
+                  <RadioButton value="airtel" color="#FF0000" />
+                  <Image
+                    source={require('../../../assets/airtel-logo.png')}
+                    style={styles.providerLogo}
+                  />
+                  <Text style={styles.providerText}>Airtel Money</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TextInput
+                label="Phone Number"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                mode="outlined"
+                keyboardType="phone-pad"
+                style={styles.input}
+                outlineColor="#ddd"
+                activeOutlineColor="#FF6B35"
+                placeholder="+256 700 000000"
+                left={<TextInput.Icon icon="phone" />}
+              />
+
+              <Text style={styles.helpText}>
+                <Icon name="information" size={14} /> You will receive a payment prompt on your phone
+              </Text>
+            </View>
+          )}
+        </Card.Content>
+      </Card>
+
+      <View style={styles.footer}>
+        <Button
+          mode="contained"
+          onPress={handlePayment}
+          loading={loading}
+          disabled={loading}
+          style={styles.payButton}
+          contentStyle={styles.payButtonContent}
+          buttonColor="#FF6B35">
+          {loading ? 'Processing Payment...' : `Pay UGX ${amount.toLocaleString()}`}
+        </Button>
+
+        <View style={styles.security}>
+          <Icon name="shield-check" size={16} color="#666" />
+          <Text style={styles.securityText}>
+            Your payment information is secure and encrypted
+          </Text>
         </View>
+      </View>
 
-        <Snackbar
-          visible={!!error}
-          onDismiss={() => setError('')}
-          duration={3000}
-          action={{
-            label: 'OK',
-            onPress: () => setError(''),
-          }}>
-          {error}
-        </Snackbar>
-      </ScrollView>
-    </StripeProvider>
+      <Snackbar
+        visible={!!error}
+        onDismiss={() => setError('')}
+        duration={4000}
+        action={{
+          label: 'Dismiss',
+          onPress: () => setError(''),
+        }}>
+        {error}
+      </Snackbar>
+
+      {/* Spacer for bottom tab bar */}
+      <View style={{height: 100}} />
+    </ScrollView>
   );
 };
 
@@ -406,6 +442,21 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#fff',
     marginBottom: 12,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  halfInput: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
   },
   footer: {
     padding: 16,
