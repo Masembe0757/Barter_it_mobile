@@ -24,8 +24,8 @@ import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import moment from 'moment';
-import ApiService, {Asset, Trade, Payment, Notification, Message} from '../../services/api';
 import {useAuth} from '../../contexts/AuthContext';
+import {useData} from '../../contexts/DataContext';
 import {LinearGradient} from 'expo-linear-gradient';
 
 const {width} = Dimensions.get('window');
@@ -42,82 +42,81 @@ interface DashboardStats {
   money_saved: number;
 }
 
+// DUMMY DATA
+const DUMMY_TRADES = [
+  {
+    id: 't1',
+    status: 'completed',
+    created_at: '2024-01-15T10:00:00Z',
+    initiator_asset_id: 'ua1',
+    receiver_asset_id: 'a2',
+  },
+  {
+    id: 't2',
+    status: 'pending',
+    created_at: '2024-01-20T14:30:00Z',
+    initiator_asset_id: 'ua2',
+    receiver_asset_id: 'a3',
+  },
+];
+
+const DUMMY_NOTIFICATIONS = [
+  {
+    id: 'n1',
+    type: 'trade_request',
+    title: 'New Trade Request',
+    message: 'Someone wants to trade with your iPhone 13 Pro Max',
+    created_at: '2024-01-22T09:15:00Z',
+    read: false,
+  },
+  {
+    id: 'n2',
+    type: 'message',
+    title: 'New Message',
+    message: 'You have a new message about MacBook Pro',
+    created_at: '2024-01-21T16:45:00Z',
+    read: true,
+  },
+  {
+    id: 'n3',
+    type: 'payment',
+    title: 'Payment Received',
+    message: 'You received UGX 5,000 for contact unlock',
+    created_at: '2024-01-20T11:20:00Z',
+    read: false,
+  },
+];
+
 const DashboardScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {user} = useAuth();
+  const {userAssets, messages} = useData();
 
   // State management
   const [activeTab, setActiveTab] = useState(route.params?.tab || 'overview');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Data states
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [myAssets, setMyAssets] = useState<Asset[]>([]);
-  const [myTrades, setMyTrades] = useState<Trade[]>([]);
-  const [recentMessages, setRecentMessages] = useState<Message[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-
-  // Fetch dashboard data
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      // Fetch user statistics
-      const userStats = await ApiService.getUserStats();
-      setStats({
-        ...userStats,
-        revenue_earned: 0, // Calculate from payments
-        money_saved: 0, // Calculate from trades
-      });
-
-      // Fetch user's assets
-      const assets = await ApiService.getMyAssets();
-      setMyAssets(assets);
-
-      // Fetch trades
-      const trades = await ApiService.getMyTrades('all');
-      setMyTrades(trades);
-
-      // Fetch recent messages
-      const conversations = await ApiService.getConversations();
-      setRecentMessages(conversations.slice(0, 5));
-
-      // Fetch notifications
-      const notifs = await ApiService.getNotifications(false);
-      setNotifications(notifs);
-
-      // Fetch payment history
-      const paymentHistory = await ApiService.getPaymentHistory();
-      setPayments(paymentHistory);
-
-      // Calculate revenue and savings
-      const revenue = paymentHistory
-        .filter(p => p.status === 'completed')
-        .reduce((acc, p) => acc + p.amount, 0);
-
-      const savings = trades
-        .filter(t => t.status === 'completed')
-        .length * 50; // Estimated savings per trade
-
-      setStats(prev => prev ? {...prev, revenue_earned: revenue, money_saved: savings} : null);
-
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  // Calculate stats from real data
+  const stats = {
+    total_assets: userAssets.length,
+    active_assets: userAssets.filter(a => a.status === 'active').length,
+    completed_trades: DUMMY_TRADES.filter(t => t.status === 'completed').length,
+    pending_trades: DUMMY_TRADES.filter(t => t.status === 'pending').length,
+    total_views: userAssets.reduce((acc, asset) => acc + asset.views, 0),
+    rating: 4.8,
+    joined_date: '2023-01-01T00:00:00Z',
+    revenue_earned: 25000, // UGX
+    money_saved: 150000, // UGX
   };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchDashboardData();
+    // Simulate refresh delay
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
   };
 
   const renderStatCard = (icon: string, label: string, value: string | number, color: string = '#FF6B35') => (
@@ -170,14 +169,14 @@ const DashboardScreen = () => {
             <View style={styles.financialItem}>
               <Text style={styles.financialLabel}>Revenue Earned</Text>
               <Text style={styles.financialValue}>
-                ${stats?.revenue_earned?.toFixed(2) || '0.00'}
+                UGX {stats?.revenue_earned?.toLocaleString() || '0'}
               </Text>
             </View>
             <View style={styles.financialDivider} />
             <View style={styles.financialItem}>
               <Text style={styles.financialLabel}>Money Saved</Text>
               <Text style={styles.financialValueGreen}>
-                ${stats?.money_saved?.toFixed(2) || '0.00'}
+                UGX {stats?.money_saved?.toLocaleString() || '0'}
               </Text>
             </View>
           </View>
@@ -228,7 +227,7 @@ const DashboardScreen = () => {
           )}
         />
         <Card.Content>
-          {notifications.slice(0, 3).map((notif) => (
+          {DUMMY_NOTIFICATIONS.slice(0, 3).map((notif) => (
             <TouchableOpacity
               key={notif.id}
               style={styles.activityItem}
@@ -258,12 +257,15 @@ const DashboardScreen = () => {
 
   const renderMyAssets = () => (
     <FlatList
-      data={myAssets}
+      data={userAssets}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
       ListHeaderComponent={() => (
         <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>My Assets ({myAssets.length})</Text>
+          <Text style={styles.listTitle}>My Assets ({userAssets.length})</Text>
           <Button
             mode="contained"
             icon="plus"
@@ -296,6 +298,9 @@ const DashboardScreen = () => {
                   <Icon name="eye" size={14} /> {item.views} views
                 </Text>
               </View>
+              <Text style={styles.assetLocation}>
+                <Icon name="map-marker" size={12} /> {item.location}
+              </Text>
             </View>
             <IconButton
               icon="pencil"
@@ -322,22 +327,15 @@ const DashboardScreen = () => {
 
   const renderTrades = () => (
     <FlatList
-      data={myTrades}
+      data={DUMMY_TRADES}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
       ListHeaderComponent={() => (
         <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>My Trades ({myTrades.length})</Text>
-          <SegmentedButtons
-            value={activeTab}
-            onValueChange={setActiveTab}
-            buttons={[
-              {value: 'trades', label: 'All'},
-              {value: 'trades-sent', label: 'Sent'},
-              {value: 'trades-received', label: 'Received'},
-            ]}
-            style={styles.segmentedButtons}
-          />
+          <Text style={styles.listTitle}>My Trades ({DUMMY_TRADES.length})</Text>
         </View>
       )}
       renderItem={({item}) => (
@@ -370,7 +368,7 @@ const DashboardScreen = () => {
                   View Details
                 </Button>
                 <Button mode="contained" buttonColor="#FF6B35" onPress={() => {}}>
-                  Manage
+                  Accept Trade
                 </Button>
               </View>
             )}
@@ -395,22 +393,26 @@ const DashboardScreen = () => {
 
   const renderMessages = () => (
     <FlatList
-      data={recentMessages}
+      data={messages.slice(0, 10)}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
       ListHeaderComponent={() => (
         <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Messages</Text>
+          <Text style={styles.listTitle}>Messages ({messages.length})</Text>
         </View>
       )}
       renderItem={({item}) => (
         <TouchableOpacity
           style={styles.messageItem}
           onPress={() => navigation.navigate('Chat', {
-            receiverId: item.sender_id,
+            userId: item.sender_id,
+            userName: 'User',
             assetId: item.asset_id,
           })}>
-          <Avatar.Text size={48} label="UN" />
+          <Avatar.Text size={48} label="U" />
           <View style={styles.messageContent}>
             <View style={styles.messageHeader}>
               <Text style={styles.messageSender}>User #{item.sender_id.substring(0, 8)}</Text>
@@ -422,13 +424,16 @@ const DashboardScreen = () => {
               {item.content}
             </Text>
           </View>
-          {!item.read && <Badge size={10} style={styles.unreadBadge} />}
+          <Badge size={8} style={styles.unreadBadge} />
         </TouchableOpacity>
       )}
       ListEmptyComponent={() => (
         <View style={styles.emptyState}>
           <Icon name="message-text-outline" size={64} color="#ccc" />
           <Text style={styles.emptyText}>No messages yet</Text>
+          <Text style={styles.emptySubText}>
+            Start a conversation by contacting asset owners
+          </Text>
         </View>
       )}
     />
@@ -436,17 +441,19 @@ const DashboardScreen = () => {
 
   const renderNotifications = () => (
     <FlatList
-      data={notifications}
+      data={DUMMY_NOTIFICATIONS}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
       ListHeaderComponent={() => (
         <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Notifications</Text>
+          <Text style={styles.listTitle}>Notifications ({DUMMY_NOTIFICATIONS.length})</Text>
           <IconButton
             icon="check-all"
-            onPress={async () => {
-              await ApiService.markAllNotificationsAsRead();
-              fetchDashboardData();
+            onPress={() => {
+              // Mark all as read
             }}
           />
         </View>
@@ -454,11 +461,8 @@ const DashboardScreen = () => {
       renderItem={({item}) => (
         <TouchableOpacity
           style={[styles.notificationItem, !item.read && styles.unreadNotification]}
-          onPress={async () => {
-            if (!item.read) {
-              await ApiService.markNotificationAsRead(item.id);
-              fetchDashboardData();
-            }
+          onPress={() => {
+            // Handle notification tap
           }}>
           <View style={[styles.notifIconContainer, {
             backgroundColor:
@@ -487,6 +491,7 @@ const DashboardScreen = () => {
               {moment(item.created_at).fromNow()}
             </Text>
           </View>
+          {!item.read && <Badge size={8} style={styles.unreadBadge} />}
         </TouchableOpacity>
       )}
       ListEmptyComponent={() => (
@@ -933,6 +938,17 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 10,
     marginBottom: 20,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#ccc',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  assetLocation: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
   },
   emptyButton: {
     borderRadius: 20,
