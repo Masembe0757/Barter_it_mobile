@@ -14,7 +14,7 @@ import {TextInput, Button, Card, Chip, Switch} from 'react-native-paper';
 import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
 import {CATEGORIES, CURRENCIES} from '../../constants/config';
 import {useData} from '../../contexts/DataContext';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, CommonActions} from '@react-navigation/native';
 
 const CONDITIONS = ['New', 'Like New', 'Excellent', 'Good', 'Fair', 'Poor'];
 
@@ -100,8 +100,15 @@ const ListAssetScreen = () => {
                 setNegotiable(true);
                 setDeliveryAvailable(false);
 
-                // Navigate to Dashboard
-                navigation.navigate('Dashboard' as never);
+                // Navigate to Dashboard tab
+                navigation.dispatch(
+                  CommonActions.navigate({
+                    name: 'MainTabs',
+                    params: {
+                      screen: 'Dashboard',
+                    },
+                  })
+                );
               },
             },
             {
