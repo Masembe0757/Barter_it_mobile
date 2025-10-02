@@ -210,12 +210,20 @@ const AssetDetailScreen = () => {
 
     if (contactUnlocked) {
       navigation.navigate('Chat', {
-        receiverId: asset?.owner_id,
-        receiverName: owner?.full_name,
+        userId: asset?.owner_id,
+        userName: owner?.full_name,
         assetId: asset?.id,
+        assetTitle: asset?.title,
+        assetImage: asset?.images?.[0],
       });
     } else {
-      setShowContactDialog(true);
+      // Navigate to payment screen
+      navigation.navigate('Payment', {
+        assetId: asset?.id,
+        assetName: asset?.title,
+        ownerName: owner?.full_name,
+        amount: 5000, // UGX 5,000 contact fee
+      });
     }
   };
 
