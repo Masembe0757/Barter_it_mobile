@@ -5,6 +5,7 @@ import {Provider as PaperProvider} from 'react-native-paper';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {AuthProvider} from './src/contexts/AuthContext';
+import {DataProvider} from './src/contexts/DataContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import * as NavigationBar from 'expo-navigation-bar';
 
