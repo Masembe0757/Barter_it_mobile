@@ -1,5 +1,10 @@
-export const API_BASE_URL = process.env.API_URL || 'https://api.barterhub.com';
+export const API_BASE_URL = process.env.API_URL || 'http://localhost:8000/api/v1';
 export const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_KEY || 'pk_test_your_stripe_key_here';
+
+export const API_CONFIG = {
+  BASE_URL: process.env.API_URL || 'http://localhost:8000/api/v1',
+  TIMEOUT: 30000,
+};
 
 export const CURRENCIES = {
   UGX: {symbol: 'UGX', name: 'Ugandan Shilling', flag: '🇺🇬'},
