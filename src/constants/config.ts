@@ -6,7 +6,9 @@ export const API_CONFIG = {
   TIMEOUT: 30000,
 };
 
-export const CURRENCIES = {
+export const CURRENCIES = ['UGX', 'KES', 'ZAR', 'NGN', 'GHS'];
+
+export const CURRENCY_DATA = {
   UGX: {symbol: 'UGX', name: 'Ugandan Shilling', flag: '🇺🇬'},
   KES: {symbol: 'KES', name: 'Kenyan Shilling', flag: '🇰🇪'},
   ZAR: {symbol: 'ZAR', name: 'South African Rand', flag: '🇿🇦'},
