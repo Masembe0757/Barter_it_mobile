@@ -11,7 +11,7 @@ import {
 import {TextInput, Button, Checkbox, Snackbar} from 'react-native-paper';
 import {useAuth} from '../../contexts/AuthContext';
 import {useNavigation} from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 import {APP_CONFIG} from '../../constants/config';
 
 const SignUpScreen = () => {
