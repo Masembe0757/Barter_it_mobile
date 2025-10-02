@@ -40,7 +40,7 @@ const {width} = Dimensions.get('window');
 const DUMMY_ASSET = {
   id: '1',
   title: 'iPhone 13 Pro Max',
-  description: 'This iPhone 13 Pro Max is in excellent condition with 256GB storage. Pacific Blue color with ceramic shield front. The phone has been well-maintained with original box and all accessories included. Battery health is at 95%. No scratches or dents. Perfect for someone looking for a premium phone at a great price.',
+  description: 'Pristine iPhone 13 Pro Max in stunning Pacific Blue color with 256GB storage capacity. This premium device features the powerful A15 Bionic chip, advanced triple-camera system with ProRAW and ProRes video recording capabilities, and the durable Ceramic Shield front.\n\n📱 DEVICE DETAILS:\n• Model: iPhone 13 Pro Max (256GB)\n• Color: Pacific Blue\n• Battery Health: 95% (Excellent)\n• Storage: 256GB with 98% available\n• Condition: Mint condition, no scratches or dents\n• Screen: Perfect condition with no dead pixels\n\n📦 WHAT\'S INCLUDED:\n• Original iPhone 13 Pro Max device\n• Original Apple box and documentation\n• Lightning to USB-C cable (unused)\n• EarPods with Lightning connector (sealed)\n• Apple stickers and SIM ejector tool\n• Screen protector applied since day one\n• Premium leather case (worth UGX 200,000)\n\n✅ VERIFIED FEATURES:\n• Face ID working perfectly\n• All cameras (Wide, Ultra Wide, Telephoto) tested\n• 5G connectivity verified\n• MagSafe charging compatible\n• Water resistance intact (IP68)\n• No repairs or modifications ever made\n\n🏆 WHY THIS PHONE?\nPurchased from iStore Kampala 8 months ago for work photography. Upgraded to iPhone 15 Pro Max for business needs. This phone has been pampered with premium protection and regular software updates. Perfect for content creators, photographers, or anyone wanting flagship performance.\n\n💰 PRICING & TRADE:\nRetail price was UGX 5,200,000. Asking UGX 3,500,000 (negotiable). Open to trades for MacBook Pro, professional camera equipment, or vehicle down payment.',
   owner_id: 'user1',
   owner: {
     id: 'user1',
@@ -54,9 +54,9 @@ const DUMMY_ASSET = {
   currency: 'UGX',
   location: 'Kampala, Uganda',
   images: [
-    'https://images.unsplash.com/photo-1632661674596-df8be070a5c1?w=400&h=400&fit=crop',
-    'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?w=400&h=400&fit=crop',
-    'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=400&h=400&fit=crop',
+    'https://picsum.photos/400/400?random=10',
+    'https://picsum.photos/400/400?random=11',
+    'https://picsum.photos/400/400?random=12',
   ],
   condition: 'Excellent',
   created_at: '2024-01-15T10:00:00Z',
@@ -138,6 +138,14 @@ const AssetDetailScreen = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
 
+  // Check for payment success
+  useEffect(() => {
+    if (route.params?.paymentSuccess && route.params?.paymentPurpose === 'similar_items') {
+      setContactUnlocked(true);
+      setSnackbarMessage('Payment successful! Similar items unlocked.');
+    }
+  }, [route.params?.paymentSuccess, route.params?.paymentPurpose]);
+
   // Fetch asset details (using dummy data)
   const fetchAssetDetails = async () => {
     setLoading(true);
@@ -217,12 +225,13 @@ const AssetDetailScreen = () => {
         assetImage: asset?.images?.[0],
       });
     } else {
-      // Navigate to payment screen
+      // Navigate to payment screen for chat access
       navigation.navigate('Payment', {
         assetId: asset?.id,
         assetName: asset?.title,
         ownerName: owner?.full_name,
         amount: 5000, // UGX 5,000 contact fee
+        purpose: 'contact_seller',
       });
     }
   };
@@ -444,32 +453,8 @@ const AssetDetailScreen = () => {
                     <Text style={styles.memberSince}>
                       Member since {moment('2023-01-01').format('MMM YYYY')}
                     </Text>
+                    <Text style={styles.verifiedBadge}>✓ Verified Seller</Text>
                   </View>
-                  <IconButton
-                    icon="chevron-right"
-                    onPress={() => {
-                      if (!user) {
-                        Alert.alert('Sign In Required', 'Please sign in to view seller profile', [
-                          {text: 'Cancel'},
-                          {text: 'Sign In', onPress: () => navigation.navigate('Auth')},
-                        ]);
-                        return;
-                      }
-
-                      if (contactUnlocked) {
-                        // Navigate to seller profile
-                        Alert.alert('Seller Profile', `${owner?.full_name || 'John Kamau'} - Verified seller since ${moment('2023-01-01').format('MMM YYYY')}. Contact unlocked.`);
-                      } else {
-                        // Navigate to payment screen
-                        navigation.navigate('Payment', {
-                          assetId: asset?.id,
-                          assetName: asset?.title,
-                          ownerName: owner?.full_name,
-                          amount: 5000, // UGX 5,000 contact fee
-                        });
-                      }
-                    }}
-                  />
                 </View>
               </Card.Content>
             </Card>
@@ -495,12 +480,13 @@ const AssetDetailScreen = () => {
                           navigation.navigate('Browse');
                         }, 100);
                       } else {
-                        // Navigate to payment screen
+                        // Navigate to payment screen for similar items access
                         navigation.navigate('Payment', {
                           assetId: asset?.id,
                           assetName: asset?.title,
                           ownerName: owner?.full_name,
-                          amount: 5000, // UGX 5,000 contact fee
+                          amount: 3000, // UGX 3,000 for similar items access
+                          purpose: 'similar_items',
                         });
                       }
                     }}>
@@ -526,24 +512,32 @@ const AssetDetailScreen = () => {
                         if (contactUnlocked) {
                           navigation.push('AssetDetails', {assetId: item.id});
                         } else {
-                          // Navigate to payment screen
+                          // Navigate to payment screen for similar items access
                           navigation.navigate('Payment', {
                             assetId: asset?.id,
                             assetName: asset?.title,
                             ownerName: owner?.full_name,
-                            amount: 5000, // UGX 5,000 contact fee
+                            amount: 3000, // UGX 3,000 for similar items access
+                            purpose: 'similar_items',
                           });
                         }
                       }}>
-                      <Image
-                        source={{uri: item.images[0]}}
-                        style={styles.similarImage}
-                      />
-                      <Text style={styles.similarTitle} numberOfLines={2}>
-                        {item.title}
+                      <View style={styles.similarImageContainer}>
+                        <Image
+                          source={{uri: item.images[0]}}
+                          style={[styles.similarImage, !contactUnlocked && styles.blurredImage]}
+                        />
+                        {!contactUnlocked && (
+                          <View style={styles.lockOverlay}>
+                            <Text style={styles.lockIcon}>🔒</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.similarTitle} numberOfLines={1}>
+                        {contactUnlocked ? item.title : '???'}
                       </Text>
                       <Text style={styles.similarPrice}>
-                        {item.currency} {item.price.toLocaleString()}
+                        {contactUnlocked ? `${item.currency} ${item.price.toLocaleString()}` : '???'}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -839,6 +833,12 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 3,
   },
+  verifiedBadge: {
+    fontSize: 12,
+    color: '#4CAF50',
+    marginTop: 2,
+    fontWeight: '600',
+  },
   similarAsset: {
     width: 150,
     marginRight: 15,
@@ -858,6 +858,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FF6B35',
+  },
+  similarImageContainer: {
+    position: 'relative',
+  },
+  blurredImage: {
+    opacity: 0.6,
+  },
+  lockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lockIcon: {
+    fontSize: 24,
+    color: '#fff',
   },
   bottomActions: {
     position: 'absolute',
