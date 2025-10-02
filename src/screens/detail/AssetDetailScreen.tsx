@@ -448,14 +448,26 @@ const AssetDetailScreen = () => {
                   <IconButton
                     icon="chevron-right"
                     onPress={() => {
-                      Alert.alert(
-                        'Seller Profile',
-                        `${owner?.full_name || 'John Kamau'} has been verified as an active member since ${moment('2023-01-01').format('MMM YYYY')}. To view full profile and ratings, please pay the contact fee.`,
-                        [
-                          {text: 'Cancel', style: 'cancel'},
-                          {text: 'Pay & View Profile', onPress: () => handleContactSeller()}
-                        ]
-                      );
+                      if (!user) {
+                        Alert.alert('Sign In Required', 'Please sign in to view seller profile', [
+                          {text: 'Cancel'},
+                          {text: 'Sign In', onPress: () => navigation.navigate('Auth')},
+                        ]);
+                        return;
+                      }
+
+                      if (contactUnlocked) {
+                        // Navigate to seller profile
+                        Alert.alert('Seller Profile', `${owner?.full_name || 'John Kamau'} - Verified seller since ${moment('2023-01-01').format('MMM YYYY')}. Contact unlocked.`);
+                      } else {
+                        // Navigate to payment screen
+                        navigation.navigate('Payment', {
+                          assetId: asset?.id,
+                          assetName: asset?.title,
+                          ownerName: owner?.full_name,
+                          amount: 5000, // UGX 5,000 contact fee
+                        });
+                      }
                     }}
                   />
                 </View>
@@ -469,10 +481,28 @@ const AssetDetailScreen = () => {
                   <Text style={styles.sectionTitle}>Similar Assets</Text>
                   <TouchableOpacity
                     onPress={() => {
-                      navigation.goBack();
-                      setTimeout(() => {
-                        navigation.navigate('Browse');
-                      }, 100);
+                      if (!user) {
+                        Alert.alert('Sign In Required', 'Please sign in to view similar assets', [
+                          {text: 'Cancel'},
+                          {text: 'Sign In', onPress: () => navigation.navigate('Auth')},
+                        ]);
+                        return;
+                      }
+
+                      if (contactUnlocked) {
+                        navigation.goBack();
+                        setTimeout(() => {
+                          navigation.navigate('Browse');
+                        }, 100);
+                      } else {
+                        // Navigate to payment screen
+                        navigation.navigate('Payment', {
+                          assetId: asset?.id,
+                          assetName: asset?.title,
+                          ownerName: owner?.full_name,
+                          amount: 5000, // UGX 5,000 contact fee
+                        });
+                      }
                     }}>
                     <Text style={styles.seeAll}>See All</Text>
                   </TouchableOpacity>
@@ -484,7 +514,27 @@ const AssetDetailScreen = () => {
                   renderItem={({item}) => (
                     <TouchableOpacity
                       style={styles.similarAsset}
-                      onPress={() => navigation.push('AssetDetails', {assetId: item.id})}>
+                      onPress={() => {
+                        if (!user) {
+                          Alert.alert('Sign In Required', 'Please sign in to view assets', [
+                            {text: 'Cancel'},
+                            {text: 'Sign In', onPress: () => navigation.navigate('Auth')},
+                          ]);
+                          return;
+                        }
+
+                        if (contactUnlocked) {
+                          navigation.push('AssetDetails', {assetId: item.id});
+                        } else {
+                          // Navigate to payment screen
+                          navigation.navigate('Payment', {
+                            assetId: asset?.id,
+                            assetName: asset?.title,
+                            ownerName: owner?.full_name,
+                            amount: 5000, // UGX 5,000 contact fee
+                          });
+                        }
+                      }}>
                       <Image
                         source={{uri: item.images[0]}}
                         style={styles.similarImage}
