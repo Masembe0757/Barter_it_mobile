@@ -53,6 +53,26 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({children}) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Test credentials bypass
+      if (email === 'test@example.com' && password === 'password123') {
+        const dummyUser = {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          phone: '+1234567890',
+          isVerified: true,
+        };
+        const dummyToken = 'dummy-token-123';
+
+        await AsyncStorage.setItem('authToken', dummyToken);
+        await AsyncStorage.setItem('userData', JSON.stringify(dummyUser));
+
+        setUser(dummyUser);
+        setIsAuthenticated(true);
+        return;
+      }
+
+      // Normal authentication flow
       const response = await authService.signIn(email, password);
       const {user: userData, token} = response;
 
