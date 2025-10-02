@@ -13,7 +13,7 @@ import {TextInput, Button, Snackbar} from 'react-native-paper';
 import {useAuth} from '../../contexts/AuthContext';
 import {useNavigation} from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 
 const SignInScreen = () => {
   const [email, setEmail] = useState('');
