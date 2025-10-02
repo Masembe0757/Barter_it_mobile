@@ -64,7 +64,9 @@ export default function App() {
           <PaperProvider theme={theme}>
             <StripeProvider publishableKey={STRIPE_KEY}>
               <AuthProvider>
-                <AppNavigator />
+                <DataProvider>
+                  <AppNavigator />
+                </DataProvider>
               </AuthProvider>
             </StripeProvider>
           </PaperProvider>
