@@ -439,7 +439,16 @@ const AssetDetailScreen = () => {
                   </View>
                   <IconButton
                     icon="chevron-right"
-                    onPress={() => navigation.navigate('Profile', {userId: owner?.id || 'user1'})}
+                    onPress={() => {
+                      Alert.alert(
+                        'Seller Profile',
+                        `${owner?.full_name || 'John Kamau'} has been verified as an active member since ${moment('2023-01-01').format('MMM YYYY')}. To view full profile and ratings, please pay the contact fee.`,
+                        [
+                          {text: 'Cancel', style: 'cancel'},
+                          {text: 'Pay & View Profile', onPress: () => handleContactSeller()}
+                        ]
+                      );
+                    }}
                   />
                 </View>
               </Card.Content>
