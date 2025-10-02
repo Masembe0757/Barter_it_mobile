@@ -33,7 +33,7 @@ const SignInScreen = () => {
     setLoading(true);
     try {
       await signIn(email, password);
-      navigation.navigate('MainTabs');
+      // Navigation will be handled automatically by AppNavigator when isAuthenticated becomes true
     } catch (err: any) {
       setError(err.message || 'Sign in failed');
     } finally {
