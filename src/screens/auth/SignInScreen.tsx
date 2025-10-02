@@ -12,7 +12,7 @@ import {
 import {TextInput, Button, Snackbar} from 'react-native-paper';
 import {useAuth} from '../../contexts/AuthContext';
 import {useNavigation} from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const SignInScreen = () => {
@@ -209,6 +209,33 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,
+  },
+  dummyCredentials: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FF6B35',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  dummyText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'center',
+    fontFamily: 'monospace',
+  },
+  dummyContainer: {
+    backgroundColor: '#FFF5F0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FFE5DC',
+  },
+  dividerSmall: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginBottom: 16,
   },
   input: {
     marginBottom: 16,
