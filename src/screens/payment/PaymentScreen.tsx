@@ -24,7 +24,7 @@ const PaymentScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
 
-  const {assetId, assetName, ownerName, amount = 5000} = route.params || {};
+  const {assetId, assetName, ownerName, amount = 5000, purpose = 'contact_seller'} = route.params || {};
 
   const [paymentMethod, setPaymentMethod] = useState('mobile_money');
   const [cardNumber, setCardNumber] = useState('');
@@ -46,29 +46,58 @@ const PaymentScreen = () => {
     const success = Math.random() > 0.2; // 80% success rate
 
     if (success) {
-      Alert.alert(
-        'Payment Successful! 🎉',
-        `Your payment of UGX ${amount.toLocaleString()} has been processed successfully. You can now contact ${ownerName} about "${assetName}".`,
-        [
-          {
-            text: 'Start Chat',
-            onPress: () => {
-              navigation.navigate('Chat', {
-                userId: 'seller-' + assetId,
-                userName: ownerName,
-                assetId: assetId,
-                assetTitle: assetName,
-                assetImage: 'https://picsum.photos/400/400?random=1',
-              });
+      if (purpose === 'similar_items') {
+        Alert.alert(
+          'Payment Successful! 🎉',
+          `Your payment of UGX ${amount.toLocaleString()} has been processed successfully. You now have access to browse similar items and explore more assets.`,
+          [
+            {
+              text: 'View Similar Items',
+              onPress: () => {
+                navigation.navigate('AssetDetails', {
+                  assetId: assetId,
+                  paymentSuccess: true,
+                  paymentPurpose: 'similar_items'
+                });
+              },
             },
-          },
-          {
-            text: 'Go Back',
-            onPress: () => navigation.goBack(),
-            style: 'cancel',
-          },
-        ]
-      );
+            {
+              text: 'Browse All',
+              onPress: () => {
+                navigation.goBack();
+                setTimeout(() => {
+                  navigation.navigate('Browse');
+                }, 100);
+              },
+              style: 'cancel',
+            },
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Payment Successful! 🎉',
+          `Your payment of UGX ${amount.toLocaleString()} has been processed successfully. You can now contact ${ownerName} about "${assetName}".`,
+          [
+            {
+              text: 'Start Chat',
+              onPress: () => {
+                navigation.navigate('Chat', {
+                  userId: 'seller-' + assetId,
+                  userName: ownerName,
+                  assetId: assetId,
+                  assetTitle: assetName,
+                  assetImage: 'https://images.unsplash.com/photo-1632661674596-df8be070a5c1?w=400&h=400&fit=crop',
+                });
+              },
+            },
+            {
+              text: 'Go Back',
+              onPress: () => navigation.goBack(),
+              style: 'cancel',
+            },
+          ]
+        );
+      }
     } else {
       const errors = [
         'Insufficient funds. Please check your balance and try again.',
@@ -140,20 +169,29 @@ const PaymentScreen = () => {
       <Card style={styles.summaryCard}>
         <Card.Content>
           <Text style={styles.sectionTitle}>Payment Summary</Text>
+          {purpose !== 'similar_items' && (
+            <>
+              <View style={styles.summaryRow}>
+                <Text style={styles.label}>Asset:</Text>
+                <Text style={styles.value}>{assetName}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.label}>Owner:</Text>
+                <Text style={styles.value}>{ownerName}</Text>
+              </View>
+            </>
+          )}
           <View style={styles.summaryRow}>
-            <Text style={styles.label}>Asset:</Text>
-            <Text style={styles.value}>{assetName}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.label}>Owner:</Text>
-            <Text style={styles.value}>{ownerName}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.label}>Contact Fee:</Text>
+            <Text style={styles.label}>
+              {purpose === 'similar_items' ? 'Similar Items Access Fee:' : 'Contact Seller Fee:'}
+            </Text>
             <Text style={styles.amount}>UGX {amount.toLocaleString()}</Text>
           </View>
           <Text style={styles.description}>
-            Pay to unlock seller contact details and start negotiations
+            {purpose === 'similar_items'
+              ? 'Pay to unlock access to similar listed items and browse more assets in this category'
+              : 'Pay to unlock seller contact details and start direct chat negotiations'
+            }
           </Text>
         </Card.Content>
       </Card>
