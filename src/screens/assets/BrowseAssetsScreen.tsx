@@ -51,7 +51,7 @@ const DUMMY_ASSETS: Asset[] = [
     price: 3500000,
     currency: 'UGX',
     location: 'Kampala, Uganda',
-    images: ['https://picsum.photos/400/400?random=1'],
+    images: ['https://images.unsplash.com/photo-1632661674596-df8be070a5c1?w=400&h=400&fit=crop'],
     condition: 'Excellent',
     created_at: '2024-01-15T10:00:00Z',
     updated_at: '2024-01-15T10:00:00Z',
