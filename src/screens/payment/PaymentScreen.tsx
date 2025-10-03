@@ -283,7 +283,7 @@ const PaymentScreen = () => {
                   onPress={() => setMobileProvider('mtn')}>
                   <RadioButton value="mtn" color="#FFD700" />
                   <Image
-                    source={require('../../../assets/mtn-logo.png')}
+                    source={require('../../../assets/mtn-logo.jpg')}
                     style={styles.providerLogo}
                   />
                   <Text style={styles.providerText}>MTN Money</Text>
