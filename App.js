@@ -1,14 +1,15 @@
 import React, {useEffect} from 'react';
-import {StatusBar, Platform} from 'react-native';
+import {Platform} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Provider as PaperProvider} from 'react-native-paper';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {StatusBar} from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
+import Constants from 'expo-constants';
 import {AuthProvider} from './src/contexts/AuthContext';
 import {DataProvider} from './src/contexts/DataContext';
 import AppNavigator from './src/navigation/AppNavigator';
-import * as NavigationBar from 'expo-navigation-bar';
-import Constants from 'expo-constants';
 
 // For Expo Go compatibility, we'll conditionally load Stripe
 let StripeProvider = ({children}) => children;
@@ -45,18 +46,8 @@ export default function App() {
   const STRIPE_KEY = Constants.expoConfig?.extra?.stripePublishableKey || 'pk_test_dummy_key';
 
   useEffect(() => {
-    // Configure status bar for production builds
+    // Configure navigation bar safely for Android
     if (Platform.OS === 'android') {
-      try {
-        // Use expo-status-bar methods for standalone builds
-        StatusBar.setBarStyle('dark-content', true);
-        StatusBar.setBackgroundColor('transparent', true);
-        StatusBar.setTranslucent(true);
-      } catch (error) {
-        console.log('StatusBar configuration failed:', error);
-      }
-
-      // Configure navigation bar safely
       try {
         NavigationBar.setBackgroundColorAsync('transparent');
         NavigationBar.setVisibilityAsync('hidden');
@@ -90,6 +81,7 @@ export default function App() {
       ) : (
         <AppContent />
       )}
+      <StatusBar style="auto" />
     </GestureHandlerRootView>
   );
 }
