@@ -8,14 +8,17 @@ import {AuthProvider} from './src/contexts/AuthContext';
 import {DataProvider} from './src/contexts/DataContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import * as NavigationBar from 'expo-navigation-bar';
+import Constants from 'expo-constants';
 
 // For Expo Go compatibility, we'll conditionally load Stripe
 let StripeProvider = ({children}) => children;
+let hasStripe = false;
 
 try {
   // Try to import Stripe, but it will fail in Expo Go
   const stripe = require('@stripe/stripe-react-native');
   StripeProvider = stripe.StripeProvider;
+  hasStripe = true;
 } catch (e) {
   // Stripe not available in Expo Go
   console.log('Stripe not available in Expo Go');
@@ -38,40 +41,55 @@ const theme = {
 };
 
 export default function App() {
-  // Dummy Stripe key for Expo Go
-  const STRIPE_KEY = 'pk_test_dummy_key';
+  // Use environment variable or dummy key for development
+  const STRIPE_KEY = Constants.expoConfig?.extra?.stripePublishableKey || 'pk_test_dummy_key';
 
   useEffect(() => {
-    // Configure status bar
-    StatusBar.setBarStyle('dark-content');
-    StatusBar.setBackgroundColor('transparent');
-    StatusBar.setTranslucent(true);
-
-    // Hide Android navigation bar for better immersive experience
+    // Configure status bar for production builds
     if (Platform.OS === 'android') {
-      // Make navigation bar transparent and hide it
-      NavigationBar.setBackgroundColorAsync('transparent');
-      NavigationBar.setVisibilityAsync('hidden');
-      // Allow swipe to show temporarily
-      NavigationBar.setBehaviorAsync('overlay-swipe');
+      try {
+        // Use expo-status-bar methods for standalone builds
+        StatusBar.setBarStyle('dark-content', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
+      } catch (error) {
+        console.log('StatusBar configuration failed:', error);
+      }
+
+      // Configure navigation bar safely
+      try {
+        NavigationBar.setBackgroundColorAsync('transparent');
+        NavigationBar.setVisibilityAsync('hidden');
+        NavigationBar.setBehaviorAsync('overlay-swipe');
+      } catch (error) {
+        console.log('NavigationBar configuration failed:', error);
+      }
     }
   }, []);
 
+  const AppContent = () => (
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={theme}>
+          <AuthProvider>
+            <DataProvider>
+              <AppNavigator />
+            </DataProvider>
+          </AuthProvider>
+        </PaperProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
+  );
+
   return (
     <GestureHandlerRootView style={{flex: 1}}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <PaperProvider theme={theme}>
-            <StripeProvider publishableKey={STRIPE_KEY}>
-              <AuthProvider>
-                <DataProvider>
-                  <AppNavigator />
-                </DataProvider>
-              </AuthProvider>
-            </StripeProvider>
-          </PaperProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
+      {hasStripe ? (
+        <StripeProvider publishableKey={STRIPE_KEY}>
+          <AppContent />
+        </StripeProvider>
+      ) : (
+        <AppContent />
+      )}
     </GestureHandlerRootView>
   );
 }

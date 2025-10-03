@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "main": "index.js",
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#FF6B35"
