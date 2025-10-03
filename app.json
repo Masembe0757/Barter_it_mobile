@@ -33,10 +33,6 @@
     "web": {
       "bundler": "metro"
     },
-    "runtimeVersion": "1.0.0",
-    "updates": {
-      "url": "https://u.expo.dev/963ea506-5f74-474f-997c-a0c39a07187d"
-    },
     "extra": {
       "eas": {
         "projectId": "963ea506-5f74-474f-997c-a0c39a07187d"
