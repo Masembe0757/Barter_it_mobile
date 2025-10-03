@@ -20,10 +20,22 @@
       "adaptiveIcon": {
         "backgroundColor": "#FF6B35"
       },
-      "package": "com.barterhub.mobile"
+      "package": "com.barterhub.mobile",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED"
+      ],
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro"
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/963ea506-5f74-474f-997c-a0c39a07187d"
     },
     "extra": {
       "eas": {
@@ -33,7 +45,14 @@
     "owner": "sendi1",
     "plugins": [
       "expo-font",
-      "expo-router"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ]
   }
 }
