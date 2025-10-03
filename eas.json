@@ -40,7 +40,6 @@
         "NODE_ENV": "production",
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       },
-      "channel": "preview",
       "cache": {
         "disabled": false
       }
@@ -62,7 +61,6 @@
         "NODE_ENV": "production",
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       },
-      "channel": "production",
       "cache": {
         "disabled": false
       }
