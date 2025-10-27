@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "barterhub",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -45,7 +46,10 @@
             }
           ]
         }
-      ]
+      ],
+      "navigationBar": {
+        "visible": "leanback"
+      }
     },
     "web": {
       "bundler": "metro"
