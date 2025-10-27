@@ -1,12 +1,9 @@
-import React, {useEffect} from 'react';
-import {Platform} from 'react-native';
+import React from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Provider as PaperProvider} from 'react-native-paper';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {StatusBar} from 'expo-status-bar';
-import * as NavigationBar from 'expo-navigation-bar';
-import Constants from 'expo-constants';
 import {AuthProvider} from './src/contexts/AuthContext';
 import {DataProvider} from './src/contexts/DataContext';
 import AppNavigator from './src/navigation/AppNavigator';
@@ -42,21 +39,7 @@ const theme = {
 };
 
 export default function App() {
-  // Use environment variable or dummy key for development
-  const STRIPE_KEY = Constants.expoConfig?.extra?.stripePublishableKey || 'pk_test_dummy_key';
-
-  useEffect(() => {
-    // Configure navigation bar safely for Android
-    if (Platform.OS === 'android') {
-      try {
-        NavigationBar.setBackgroundColorAsync('transparent');
-        NavigationBar.setVisibilityAsync('hidden');
-        NavigationBar.setBehaviorAsync('overlay-swipe');
-      } catch (error) {
-        console.log('NavigationBar configuration failed:', error);
-      }
-    }
-  }, []);
+  const STRIPE_KEY = process.env.EXPO_PUBLIC_STRIPE_KEY || 'pk_test_dummy_key';
 
   const AppContent = () => (
     <SafeAreaProvider>
