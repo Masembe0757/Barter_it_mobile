@@ -60,7 +60,7 @@
       "env": {
         "NODE_ENV": "production",
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
-        "EXPO_PUBLIC_API_URL": "http://localhost:8000/api/v1",
+        "EXPO_PUBLIC_API_URL": "https://your-production-api.com/api/v1",
         "EXPO_PUBLIC_STRIPE_KEY": "pk_test_your_stripe_key_here"
       },
       "cache": {
